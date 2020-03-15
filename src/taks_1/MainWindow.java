@@ -16,7 +16,7 @@ public class MainWindow {
         mainFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         mainFrame.setVisible(true);
 
-        Simulator.runScenario(1);
+        Simulator.runScenario(0);
 
         DrawLandscape landscape = new DrawLandscape(Simulator.getData(),
                                                     Simulator.getDimension().x,
@@ -31,6 +31,7 @@ public class MainWindow {
         System.out.println("Delta: " + Simulator.getDelta().x + "|" + Simulator.getDelta().y);
         System.out.println("Dimenze: " + Simulator.getDimension().x + "|" + Simulator.getDimension().y);
 
+        /*
         Timer timer;
         int timerPeriod = 1; // Prekreslit okno 25krat za 1000 milisekund
         long startTime = System.currentTimeMillis();
@@ -42,5 +43,12 @@ public class MainWindow {
             }
         });
         timer.start();
+
+         */
+
+        while(true) {
+            Simulator.nextStep(0.9999999);
+            landscape.repaint();
+        }
     }
 }

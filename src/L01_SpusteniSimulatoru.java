@@ -1,38 +1,38 @@
 import waterflowsim.Simulator;
-import waterflowsim.Scenarios;
-import waterflowsim.Cell;
-import java.util.List;
 
+import javax.swing.*;
+
+/**
+ * @author Martin Jakubašek
+ * @version 1.0
+ */
 public class L01_SpusteniSimulatoru {
 
+	private static JFrame waterMapFrame;
+
+	private final static String windowTitle = "WaterFlowSim - A19B0069P Martin Jakubašek";
+
+	/**
+	 * Hlavní metoda programu, spustí program, který vykreslí mapu vodstva a
+	 * pravidelně ji aktualizuje
+	 *
+	 * @param args použit pro výběr scénáře (0-3)
+	 */
 	public static void main(String[] args) {
-		Scenarios[] scenarios = Simulator.getScenarios();
-		
-		// Vypis existujicich scenaru
-		for(Scenarios sc: scenarios) {
-			System.out.println(sc);
-		}
-		
-		// Nahrani a spusteni prvniho scenare
 		Simulator.runScenario(0);
-
-		// Ziskani prvni bunky z plochy
-		Cell cell = Simulator.getData()[0];
-
-		// Spusteni simulace, v kazdem kroku cyklu se posune o preddefinovanou
-		// dobu.
-		for(int i=0; i<100; i++) {
-			Simulator.nextStep(0.02);
-			System.out.println(cell);
-		}
-
-		// Ziskani vsech vodnich zdroju
-		// a pruchod pres vsechny zdroje	
-		waterflowsim.WaterSourceUpdater[] zdroje = Simulator.getWaterSources();
-		for(waterflowsim.WaterSourceUpdater up: zdroje){
-			System.out.print(up.getName());
-			System.out.println(" na indexu v poli: "+up.getIndex());
-		}
+		Simulator.nextStep(0.2);
+		initWaterMap();
 	}
 
+	/**
+	 * Inicializuje okno s výškovou mapu krajiny
+	 */
+	private static void initWaterMap() {
+		WaterMapWindow waterMapWindow= new WaterMapWindow(Simulator.getData(),
+														  Simulator.getDimension().x,
+														  Simulator.getDimension().y);
+		waterMapFrame = waterMapWindow.create();
+		waterMapFrame.setTitle(windowTitle);
+		waterMapFrame.setVisible(true);
+	}
 }

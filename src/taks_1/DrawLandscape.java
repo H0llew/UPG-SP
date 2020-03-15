@@ -70,7 +70,7 @@ public class DrawLandscape extends JPanel {
          */
 
         BufferedImage landscapeImage = createImage();
-        g.drawImage(landscapeImage, 0, 0, (int) (landscapeImage.getWidth()*Simulator.getDelta().x)*-10, (int) (landscapeImage.getHeight()*Simulator.getDelta().y) * -10, null);
+        g.drawImage(landscapeImage, 0, 0, landscapeImage.getWidth(), landscapeImage.getHeight(), null);
     }
 
     void drawWaterFlowLabel(Point2D position, Vector2D dirFlow, String name, Graphics2D g) {
@@ -88,7 +88,7 @@ public class DrawLandscape extends JPanel {
 
         for (int y = 0; y < heightPixels; y++) {
             for (int x = 0; x < widthPixels; x++) {
-                if (!landscapeData[heightPixels*y+x].isDry()) {
+                if (!landscapeData[widthPixels*y+x].isDry()) {
                     Line2D pixel = new Line2D.Double(x,y,x,y);
                     image.draw(pixel);
                 }
