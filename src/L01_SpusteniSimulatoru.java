@@ -20,8 +20,18 @@ public class L01_SpusteniSimulatoru {
 	 */
 	public static void main(String[] args) {
 		Simulator.runScenario(0);
-		Simulator.nextStep(0.2);
+		Simulator.nextStep(0.99);
 		initWaterMap();
+
+		System.out.println(Simulator.getDimension().x);
+		System.out.println(Simulator.getDimension().y);
+		System.out.println(Simulator.getDelta().x);
+		System.out.println(Simulator.getDelta().y);
+
+		while (true) {
+			Simulator.nextStep(0.9);
+			waterMapFrame.repaint();
+		}
 	}
 
 	/**
@@ -29,6 +39,7 @@ public class L01_SpusteniSimulatoru {
 	 */
 	private static void initWaterMap() {
 		WaterMapWindow waterMapWindow= new WaterMapWindow(Simulator.getData(),
+														  Simulator.getWaterSources(),
 														  Simulator.getDimension().x,
 														  Simulator.getDimension().y);
 		waterMapFrame = waterMapWindow.create();

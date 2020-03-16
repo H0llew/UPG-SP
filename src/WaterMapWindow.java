@@ -1,4 +1,5 @@
 import waterflowsim.Cell;
+import waterflowsim.WaterSourceUpdater;
 
 import javax.swing.*;
 
@@ -11,6 +12,7 @@ import javax.swing.*;
 public class WaterMapWindow {
 
     private Cell[] data;
+    private WaterSourceUpdater[] waterSources;
     private int width;
     private int height;
 
@@ -23,8 +25,9 @@ public class WaterMapWindow {
      * @param width šířka krajiny
      * @param height výška krajiny
      */
-    public WaterMapWindow(Cell[] data, int width, int height) {
+    public WaterMapWindow(Cell[] data, WaterSourceUpdater[] waterSources, int width, int height) {
         this.data = data;
+        this.waterSources = waterSources;
         this.width = width;
         this.height = height;
     }
@@ -38,7 +41,7 @@ public class WaterMapWindow {
         JFrame jFrame = new JFrame();
         jFrame = Window.createBasicWindow(width, height, "new Window");
 
-        waterMap = new DrawWaterMap(data, width, height);
+        waterMap = new DrawWaterMap(data, waterSources, width, height);
         jFrame.add(waterMap);
 
         return jFrame;
