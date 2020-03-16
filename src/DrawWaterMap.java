@@ -138,6 +138,9 @@ public class DrawWaterMap extends JPanel {
 
     private void drawWaterFlowLabel(Point2D position, Vector2D<Double> dirFlow, String name, Graphics2D g) {
 
+        drawArrow(position, dirFlow, g);
+        drawArrowText(dirFlow, position, name, g);
+        /*
         //normalizace vektoru
         double magnitude = Math.sqrt(dirFlow.x * dirFlow.x + dirFlow.y * dirFlow.y);
         double normX = dirFlow.x / magnitude;
@@ -202,10 +205,80 @@ public class DrawWaterMap extends JPanel {
         g.drawString(name, 0, 0);
 
         g.setTransform(oldAf);
+         */
     }
 
-    private void createArrow() {
+    private void drawArrowText(Vector2D<Double> heading, Point2D position, String name, Graphics2D g) {
 
+        AffineTransform old = g.getTransform();
+
+        //normalizace vektoru
+        double magnitude = Math.sqrt(heading.x * heading.x + heading.y * heading.y);
+        Vector2D<Double> normalization = new Vector2D<>(heading.x / magnitude,
+                                                       heading.y / magnitude);
+
+        double angle = Math.toDegrees(Math.atan2(normalization.y, normalization.x));
+        Point2D pos;
+
+        FontMetrics fm = g.getFontMetrics();
+        double textOffset = (arrowlength - fm.stringWidth(name));
+
+        if ((angle > 90 && angle < 270) || (angle < -90 && angle > -270)) {
+
+            /*
+            pos = new Point2D.Double(position.getX() + (normalization.x * (arrowlength - arrowlengthExt - textOffset)),
+                                     position.getY() + (normalization.y * (arrowlength - arrowlengthExt - textOffset)));
+            */
+            pos = new Point2D.Double(position.getX() + (normalization.x * (arrowlength - textOffset / 2)),
+                                     position.getY() + (normalization.y * (arrowlength - textOffset / 2)));
+            angle += 180; //kvůli relativně správnému zovrázení textu
+        } else {
+            /*pos = new Point2D.Double(position.getX() + (normalization.x * (arrowlengthExt + textOffset / 2)),
+                                     position.getY() + (normalization.y * (arrowlengthExt + textOffset / 2)));*/
+            pos = new Point2D.Double(position.getX() + (normalization.x * textOffset / 2),
+                                     position.getY() + (normalization.y * textOffset / 2));
+        }
+
+        g.translate(pos.getX(), pos.getY());
+
+        g.rotate(Math.toRadians(angle));
+        g.translate(0, -arrowThickness);
+        g.drawString(name, 0, 0);
+
+        g.setTransform(old);
+    }
+    private void drawArrow(Point2D start, Vector2D<Double> heading, Graphics2D g) {
+        //normalizace vektoru
+        double magnitude = Math.sqrt(heading.x * heading.x + heading.y * heading.y);
+        Vector2D<Double> normalization = new Vector2D<>(heading.x / magnitude,
+                                                       heading.y / magnitude);
+
+        //tvorba "těla" šipky
+        Vector2D<Double> arrowHeading = new Vector2D<>(normalization.x * arrowlength,  //vektor úsečky
+                                                      normalization.y * arrowlength);
+
+        Point2D pointB = new Point2D.Double(start.getX() + arrowHeading.x, //2. bod úsečky
+                                            start.getY() + arrowHeading.y);
+
+        Line2D body = new Line2D.Double(start.getX(), start.getY(), pointB.getX(), pointB.getY()); //samotné tělo
+
+        //tvorba "hlavy" šipky
+        Vector2D<Double> perpNormalization = new Vector2D<>(-normalization.y, normalization.x); //kolmý jednotkový vektor
+
+        Point2D pointC = new Point2D.Double(pointB.getX() + (perpNormalization.x * arrowThickness * 2), //bod C
+                                            pointB.getY() + (perpNormalization.y * arrowThickness * 2));
+
+        Point2D pointD = new Point2D.Double(pointB.getX() - (perpNormalization.x * arrowThickness * 2), //bod D
+                                            pointB.getY() - (perpNormalization.y * arrowThickness * 2));
+
+        Point2D pointE = new Point2D.Double(pointB.getX() + arrowHeading.x / 2, //bod E
+                                            pointB.getY() + arrowHeading.y / 2);
+
+        //vykreslení šipky
+        g.fillPolygon(new int[]{(int) pointC.getX(), (int) pointD.getX(), (int) pointE.getX()},
+                      new int[]{(int) pointC.getY(), (int) pointD.getY(), (int) pointE.getY()}, 3);
+        g.setStroke(new BasicStroke(arrowThickness));
+        g.draw(body);
     }
 
     /**
