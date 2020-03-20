@@ -32,6 +32,10 @@ public class DrawWaterMap extends JPanel {
     private int width;
     private int height;
 
+    private int plusUltra = 0;
+
+    private LandscapeDimensions ld;
+
     public DrawWaterMap(Cell[] data, WaterSourceUpdater[] waterSources, int width, int height) {
         this.data = data;
         this.waterSources = waterSources;
@@ -47,13 +51,30 @@ public class DrawWaterMap extends JPanel {
 
         if (isFistDraw) {
             arrowlength = getArrowlength(g2D);
+            ld = new LandscapeDimensions(width, height,
+                    Simulator.getDelta().x , Simulator.getDelta().y,
+                    arrowlength + arrowlength / 2,
+                    Simulator.getWaterSources());
             isFistDraw = false;
         }
 
-        g2D.translate(50, 50);
-        drawWaterLayer(g2D);
+        //g2D.translate(50, 50);
+        //drawWaterLayer(g2D);
 
-        drawWaterSources(g2D);
+        //drawWaterSources(g2D);
+        BufferedImage arrowImage = getArrowsImage();
+        //g.drawImage(arrowImage, 0, 0, arrowImage.getWidth(), arrowImage.getHeight(), null);
+
+        BufferedImage finalImage = new BufferedImage(5000,2000, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D graphics2D = finalImage.createGraphics();
+        drawWaterLayer(graphics2D);
+        graphics2D.drawImage(arrowImage, 0, 0, arrowImage.getWidth(), arrowImage.getHeight(), null);
+
+        g2D.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        g2D.drawImage(finalImage,0, 0, finalImage.getWidth() + plusUltra, finalImage.getHeight() + plusUltra, null);
+        plusUltra += 5;
+        if (plusUltra == 100)
+            plusUltra = 100;
     }
 
     /**
@@ -84,8 +105,11 @@ public class DrawWaterMap extends JPanel {
     private void drawWaterLayer(Graphics2D g) {
 
         BufferedImage waterImage = getWaterImage();
-
-        g.drawImage(waterImage, 0, 0, waterImage.getWidth(), waterImage.getHeight(), null);
+        Point2D trans = ld.getOverlap();
+        AffineTransform old = g.getTransform();
+        g.translate(Math.abs(trans.getX()), Math.abs(trans.getY()));
+        g.drawImage(waterImage, 0, 0, (int) (waterImage.getWidth() * ld.getScale().getX()), (int) (waterImage.getHeight() * ld.getScale().getY()), null);
+        g.setTransform(old);
     }
 
     /**
@@ -123,91 +147,68 @@ public class DrawWaterMap extends JPanel {
         }
     }
 
+    /**
+     * Metoda prostřednictvím metody drawWaterFlowLabel vykreslí všechny vodní zdroje v
+     * krajině, poskytnuté metodou simulátoru getWaterSources.
+     *
+     * @param g {@link Graphics2D}
+     */
     private void drawWaterSources(Graphics2D g) {
+        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        g.setFont(new Font("Arial", Font.PLAIN, 15));
+
         for (WaterSourceUpdater source : waterSources) {
             int y = source.getIndex() / width;
             int x = source.getIndex() % width;
-            //drawWaterFlowLabel(new Point2D.Double(x,y), data[source.getIndex()].getGradient(), source.getName(), g);
-            g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-            g.setFont(new Font("Arial", Font.CENTER_BASELINE, 15));
+
             Vector2D<Double> gradient = Simulator.getGradient(source.getIndex());
-            Vector2D<Double> bzum = new Vector2D<>(-gradient.x, -gradient.y);
-            drawWaterFlowLabel(new Point2D.Double(x, y), bzum, source.getName(), g);
+            drawWaterFlowLabel(new Point2D.Double(x, y), gradient, source.getName(), g);
         }
     }
 
+    private BufferedImage getArrowsImage() {
+
+        Point2D dim = ld.getArrowBitmapDimensions();
+        System.out.println("x: " + dim.getX() + " y: " + dim.getY());
+        BufferedImage arrowImage = new BufferedImage((int) dim.getX(), (int) dim.getY(), BufferedImage.TYPE_INT_ARGB);
+
+        Graphics2D g = arrowImage.createGraphics();
+        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        g.setColor(Color.BLACK);
+
+        Point2D trans = ld.getOverlap();
+        AffineTransform old = g.getTransform();
+        g.translate(Math.abs(trans.getX()), Math.abs(trans.getY()));
+
+        drawWaterSources(g);
+        g.setTransform(old);
+        return arrowImage;
+    }
+
+    /**
+     * Metoda vykreslí na zadané pozici (v pixelech v souřadném systému okna) šipku ve směru
+     * dirFlow znázorňující směr toku vody a dále název vodního toku ( name).
+     *
+     * @param position počáteční bod
+     * @param dirFlow směrový vektor
+     * @param name jméno řeky
+     * @param g {@link Graphics2D}
+     */
     private void drawWaterFlowLabel(Point2D position, Vector2D<Double> dirFlow, String name, Graphics2D g) {
 
+        position = new Point2D.Double(position.getX() * ld.getScale().getX(), position.getY() * ld.getScale().getY());
         drawArrow(position, dirFlow, g);
         drawArrowText(dirFlow, position, name, g);
-        /*
-        //normalizace vektoru
-        double magnitude = Math.sqrt(dirFlow.x * dirFlow.x + dirFlow.y * dirFlow.y);
-        double normX = dirFlow.x / magnitude;
-        double normY = dirFlow.y / magnitude;
-        //tvorba "těla" šipky
-        double vX = normX * arrowlength;
-        double vY = normY * arrowlength;
-
-        double aX = position.getX();
-        double aY = position.getY();
-        double bX = aX + vX;
-        double bY = aY + vY;
-        Line2D body = new Line2D.Double(aX, aY, bX, bY);
-        //tvorba "hlavy" šipky
-        double pNormX = -normY;
-        double pNormY = normX;
-
-        double cX = bX + pNormX * arrowThickness * 2;
-        double cY = bY + pNormY * arrowThickness * 2;
-        double dX = bX - pNormX * arrowThickness * 2;
-        double dY = bY - pNormY * arrowThickness * 2;
-
-        double eX = bX + vX / 2;
-        double eY = bY + vY / 2;
-        //vykreslení šipky
-        g.fillPolygon(new int[]{(int) cX, (int) dX, (int) eX}, new int[]{(int) cY, (int) dY, (int) eY}, 3);
-        g.setStroke(new BasicStroke(arrowThickness));
-        g.draw(body);
-
-        double sX = (aX + bX) / 2;
-        double sY = (aY + bY) / 2;
-
-        AffineTransform oldAf = g.getTransform();
-
-        double angle = Math.toDegrees(Math.atan2(normY, normX));
-        //System.out.println(angle + "/" + name);
-        //double tX = (angle < 90 || angle > 270) ? aX : bX;
-        //double tY = (angle < 90 || angle > 270) ? aY : bY;
-
-        double tX;
-        double tY;
-        FontMetrics fm = g.getFontMetrics();
-        double textOffset = (arrowlength - fm.stringWidth(name)) / 4.0;
-
-        if ((angle > 90 && angle < 270) || (angle < -90 && angle > -270)) {
-
-            tX = aX + (normX * (arrowlength - arrowlengthExt - textOffset));
-            tY = aY + (normY * (arrowlength - arrowlengthExt - textOffset));
-
-            angle += 180;
-        } else {
-            tX = aX + (normX * (arrowlengthExt + textOffset));
-            tY = aY + (normY * (arrowlengthExt + textOffset));
-        }
-
-        //double tX = aX + (normX * (arrowlength - arrowlengthExt));
-        //double tY = aY + (normY * (arrowlength - arrowlengthExt));
-        g.translate(tX, tY);
-
-        g.rotate(Math.toRadians(angle));
-        g.translate(0, -arrowThickness);
-        g.drawString(name, 0, 0);
-
-        g.setTransform(oldAf);
-         */
     }
 
+    /**
+     * Vykreslí text nad šipkou
+     *
+     * @param heading směrový vektor
+     * @param position pozice, kam se má daný text vykreslit
+     * @param name text
+     * @param g {@link Graphics2D}
+     */
     private void drawArrowText(Vector2D<Double> heading, Point2D position, String name, Graphics2D g) {
 
         AffineTransform old = g.getTransform();
@@ -224,17 +225,11 @@ public class DrawWaterMap extends JPanel {
         double textOffset = (arrowlength - fm.stringWidth(name));
 
         if ((angle > 90 && angle < 270) || (angle < -90 && angle > -270)) {
-
-            /*
-            pos = new Point2D.Double(position.getX() + (normalization.x * (arrowlength - arrowlengthExt - textOffset)),
-                                     position.getY() + (normalization.y * (arrowlength - arrowlengthExt - textOffset)));
-            */
             pos = new Point2D.Double(position.getX() + (normalization.x * (arrowlength - textOffset / 2)),
                                      position.getY() + (normalization.y * (arrowlength - textOffset / 2)));
             angle += 180; //kvůli relativně správnému zovrázení textu
-        } else {
-            /*pos = new Point2D.Double(position.getX() + (normalization.x * (arrowlengthExt + textOffset / 2)),
-                                     position.getY() + (normalization.y * (arrowlengthExt + textOffset / 2)));*/
+        }
+        else {
             pos = new Point2D.Double(position.getX() + (normalization.x * textOffset / 2),
                                      position.getY() + (normalization.y * textOffset / 2));
         }
@@ -247,8 +242,18 @@ public class DrawWaterMap extends JPanel {
 
         g.setTransform(old);
     }
+
+    /**
+     * Vykreslí šipku pomocí počátečního bodu a směrového vektoru
+     *
+     * @param start počáteční bod
+     * @param heading směrový vektor
+     * @param g {@link Graphics2D}
+     */
     private void drawArrow(Point2D start, Vector2D<Double> heading, Graphics2D g) {
         //normalizace vektoru
+        //start = new Point2D.Double(start.getX() * ld.getScale().getX(), start.getY() * ld.getScale().getY());
+
         double magnitude = Math.sqrt(heading.x * heading.x + heading.y * heading.y);
         Vector2D<Double> normalization = new Vector2D<>(heading.x / magnitude,
                                                        heading.y / magnitude);
