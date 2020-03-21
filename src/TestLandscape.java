@@ -15,7 +15,7 @@ public class TestLandscape {
         Simulator.runScenario(0);
         Simulator.nextStep(0.99);
 
-        DrawLandscape drawLandscape = new DrawLandscape(Simulator.getDimension(), Simulator.getData(), Simulator.getDelta());
+        DrawLandscape drawLandscape = new DrawLandscape(Simulator.getDimension(), Simulator.getData(), Simulator.getDelta(), Simulator.getWaterSources());
         win.add(drawLandscape);
         win.pack();
 

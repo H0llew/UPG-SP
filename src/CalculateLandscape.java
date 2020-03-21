@@ -1,4 +1,5 @@
 import waterflowsim.Vector2D;
+import waterflowsim.WaterSourceUpdater;
 
 import java.awt.geom.Point2D;
 
@@ -8,6 +9,11 @@ public class CalculateLandscape {
 
     public Point2D trueLandDim;
     public Point2D deltaScale;
+
+    private double minCoordX;
+    private double minCoordY;
+    private double maxCoordX;
+    private double maxCoordY;
 
     public CalculateLandscape(Vector2D<Integer> landDim, Vector2D<Double> delta) {
         pixLandDim = new Point2D.Double(landDim.x, landDim.y);
@@ -30,13 +36,56 @@ public class CalculateLandscape {
     }
 
     public double getScale(int width, int height) {
+        double x = Math.max(trueLandDim.getX(), maxCoordX);
+        double y = Math.max(trueLandDim.getY(), maxCoordY);
 
-        //double scaleX = width / (trueLandDim.getX() * deltaScale.getX());
-        //double scaleY = height / (trueLandDim.getY() * deltaScale.getY());
-
-        double scaleX = width / (trueLandDim.getX());
-        double scaleY = height / (trueLandDim.getY());
+        double scaleX = width / (x + Math.abs(minCoordX));
+        double scaleY = height / (y + Math.abs(minCoordY));
 
         return Math.min(scaleY, scaleX);
+    }
+
+    public void createArrowDimension(Point2D pixLandDim, Point2D arrowOffset, double arrowLength,
+                                   WaterSourceUpdater[] waterSources) {
+
+        maxCoordX = trueLandDim.getX();
+        maxCoordY = trueLandDim.getY();
+
+        for (WaterSourceUpdater source : waterSources) {
+            double y = (int) (source.getIndex() / pixLandDim.getX());
+            double x = (int) (source.getIndex() % pixLandDim.getX());
+
+            x = ((x + arrowOffset.getX()) * deltaScale.getX());
+            y = ((y + arrowOffset.getY()) * deltaScale.getY());
+
+            // vlevo
+            double borderX = x - arrowLength;
+            if (borderX < 0) {
+                minCoordX = Math.min(minCoordX, borderX);
+            }
+            // nahoře
+            double borderY = y - arrowLength;
+            if (borderY < 0) {
+                minCoordY = Math.min(minCoordY, borderY);
+            }
+            // vpravo
+            borderX = x + arrowLength;
+            if (borderX > 0) {
+                maxCoordX = Math.max(maxCoordX, borderX);
+            }
+            // dole
+            borderY = y + arrowLength;
+            if (borderY > 0) {
+                maxCoordY = Math.max(maxCoordY, borderY);
+            }
+        }
+    }
+
+    public double getMinCoordX() {
+        return minCoordX;
+    }
+
+    public double getMinCoordY() {
+        return minCoordY;
     }
 }

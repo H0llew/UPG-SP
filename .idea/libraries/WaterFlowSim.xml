@@ -1,7 +1,7 @@
 <component name="libraryTable">
   <library name="WaterFlowSim">
     <CLASSES>
-      <root url="jar://$PROJECT_DIR$/WaterFlowSim.jar!/" />
+      <root url="jar://C:/java/WaterFlowSim.jar!/" />
     </CLASSES>
     <JAVADOC />
     <SOURCES />
