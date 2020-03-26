@@ -262,15 +262,15 @@ public class DrawLandscape extends JPanel {
         Point2D pos;
 
         FontMetrics fm = g2D.getFontMetrics(); // kvuli uprave textu na sipce
-        double textOffset = (arrowLength - fm.stringWidth(name));
+        double textOffset = (arrowLength*scale - fm.stringWidth(name));
 
         if ((angle > 90 && angle < 270) || (angle < -90 && angle > -270)) {
-            pos = new Point2D.Double(position.getX() + (normalization.x * (arrowLength - textOffset / 2)),
-                    position.getY() + (normalization.y * (arrowLength - textOffset / 2)));
+            pos = new Point2D.Double(position.getX() + (normalization.x * ((arrowLength * scale) - textOffset / 2)),
+                    position.getY() + (normalization.y * ((arrowLength * scale) - textOffset / 2)));
             angle += 180; //kvůli relativně správnému zovrázení textu
         } else {
-            pos = new Point2D.Double(position.getX() + (normalization.x * textOffset / 2),
-                    position.getY() + (normalization.y * textOffset / 2));
+            pos = new Point2D.Double(position.getX() + (normalization.x*textOffset/2.0),
+                    position.getY() + (normalization.y*textOffset/2.0));
         }
 
         AffineTransform old = g2D.getTransform();
