@@ -1,5 +1,4 @@
 import waterflowsim.Cell;
-import waterflowsim.Simulator;
 import waterflowsim.Vector2D;
 import waterflowsim.WaterSourceUpdater;
 
@@ -11,6 +10,14 @@ import java.awt.geom.Path2D;
 import java.awt.geom.Point2D;
 import java.awt.image.BufferedImage;
 
+/**
+ * Trida slouzi pro slpneni prvniho zadani UPG seminarni prace
+ * Vykresli do okna krajinu, upravenou podle zadani a sipky vodnich zdroju
+ *
+ * @author Martin Jakubasek
+ * @version 1.0
+ * @since 22.3.2020
+ */
 public class DrawLandscape extends JPanel {
 
     // Atributy prevzate ze Simulatoru
@@ -65,8 +72,6 @@ public class DrawLandscape extends JPanel {
         super.paintComponent(g);
 
         scale = cl.getScale(this.getWidth(), this.getHeight());
-        //scale = cl.getScale((int) (this.getWidth() + Math.abs(cl.getMinCoordX())),
-                //(int) (this.getHeight() + Math.abs(cl.getMinCoordY())));
 
         Graphics2D g2D = (Graphics2D) g;
 
